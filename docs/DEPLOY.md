@@ -11,15 +11,6 @@ npm run build
 
 A pasta gerada para deploy é `dist`.
 
-## Netlify
-
-Configuração já incluída em `netlify.toml`:
-
-- Build command: `npm run build`
-- Publish directory: `dist`
-- Node: `22`
-- Redirect SPA: `/* -> /index.html`
-
 ## Vercel
 
 Configuração já incluída em `vercel.json`:
@@ -29,6 +20,11 @@ Configuração já incluída em `vercel.json`:
 - Output directory: `dist`
 - Rewrite SPA para `/`
 
-## GitHub Pages
+## Como publicar na Vercel
 
-Também é possível publicar a pasta `dist`, mas para GitHub Pages pode ser necessário ajustar `base` no `vite.config.ts` caso o site fique em subpath, por exemplo `/e-commerce/`.
+1. Importe o repositório no painel da Vercel.
+2. Selecione o framework **Vite**.
+3. Confirme:
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+4. Faça o deploy.

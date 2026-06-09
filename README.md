@@ -32,6 +32,6 @@ Consulte `docs/ECOMMERCE_TRACKING.md` para os eventos implementados e instruçõ
 
 ## Backend e deploy
 
-O projeto não possui backend: tudo funciona com estado local no navegador. O deploy do front-end está preparado para Netlify e Vercel com `netlify.toml`, `vercel.json` e redirect SPA em `public/_redirects`.
+O projeto não possui backend: tudo funciona com estado local no navegador. O deploy do front-end está preparado para Vercel com `vercel.json`.
 
 Consulte `docs/DEPLOY.md`.
