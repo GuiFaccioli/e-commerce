@@ -75,18 +75,3 @@ export function clearTrackingHistory() {
   window.dispatchEvent(new Event('techzone:tracking-clear'));
 }
 
-export function initializeGtm() {
-  if (!isBrowser()) return;
-
-  const gtmId = import.meta.env.VITE_GTM_ID || import.meta.env.NEXT_PUBLIC_GTM_ID;
-  if (!gtmId || document.querySelector(`script[data-gtm-id="${gtmId}"]`)) return;
-
-  ensureDataLayer();
-  window.dataLayer?.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
-
-  const script = document.createElement('script');
-  script.async = true;
-  script.dataset.gtmId = gtmId;
-  script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
-  document.head.appendChild(script);
-}

@@ -26,9 +26,16 @@ npm run lint
 npm run typecheck
 ```
 
-## Tracking
+## Tracking / Analytics
 
-Consulte `docs/ECOMMERCE_TRACKING.md`, `docs/TRACKING_EVENTS.md` e `docs/TRACKING_SETUP.md` para os eventos implementados e instruções de teste no console.
+O site usa `window.dataLayer` para registrar ações reais do usuário. O GTM é opcional e só carrega quando `VITE_GTM_ID` está configurado, sem ID hardcoded.
+
+Documentação principal:
+
+- Eventos: `docs/TRACKING_EVENTS.md`
+- Setup de tracking: `docs/TRACKING_SETUP.md`
+- Setup GTM: `docs/GTM_SETUP.md`
+- Validação GTM Preview: `docs/GTM_PREVIEW_VALIDATION.md`
 
 Debug local:
 
@@ -36,7 +43,7 @@ Debug local:
 ?debug_tracking=true
 ```
 
-GTM opcional via variável de ambiente, sem ID hardcoded:
+GTM opcional:
 
 ```txt
 VITE_GTM_ID=GTM-XXXXXXX
