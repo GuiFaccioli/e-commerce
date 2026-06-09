@@ -29,3 +29,9 @@ npm run typecheck
 ## Tracking
 
 Consulte `docs/ECOMMERCE_TRACKING.md` para os eventos implementados e instruções de teste no console.
+
+## Backend e deploy
+
+O projeto não possui backend: tudo funciona com estado local no navegador. O deploy do front-end está preparado para Netlify e Vercel com `netlify.toml`, `vercel.json` e redirect SPA em `public/_redirects`.
+
+Consulte `docs/DEPLOY.md`.
