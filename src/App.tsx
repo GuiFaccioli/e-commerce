@@ -1,6 +1,7 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { categories, products, type CartItem, type Product } from './data/products';
-import { cartValue, pushAddToCart, pushBeginCheckout, pushFilterProducts, pushPurchase, pushRemoveFromCart, pushSearch, pushSelectItem, pushViewCart, pushViewItem } from './analytics/dataLayer';
+import { TrackingDebugPanel } from './components/TrackingDebugPanel';
+import { cartValue, pushAddToCart, pushBeginCheckout, pushFilterProducts, pushPageViewCustom, pushPurchase, pushRemoveFromCart, pushSearch, pushSelectItem, pushViewCart, pushViewItem } from './analytics/dataLayer';
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const productPrice = (product: Product) => product.promotionalPrice ?? product.price;
@@ -16,6 +17,13 @@ function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [order, setOrder] = useState<{ id: string; total: number } | null>(null);
   const [form, setForm] = useState<CheckoutForm>({ name: '', email: '', phone: '', payment: 'pix-fake' });
+  const pageViewTracked = useRef(false);
+
+  useEffect(() => {
+    if (pageViewTracked.current) return;
+    pageViewTracked.current = true;
+    pushPageViewCustom(window.location.href, document.title);
+  }, []);
 
   const filteredProducts = useMemo(() => products.filter((product) => {
     const matchesCategory = category === 'Todos' || product.category === category;
@@ -150,6 +158,7 @@ function App() {
     {selected && <div className="modal" role="dialog" aria-modal="true"><article><button className="close" onClick={() => setSelected(null)}>×</button><div className="visual large"><span>{selected.image}</span><em>{selected.tag}</em></div><p className="category">{selected.category} · ★ {selected.rating}</p><h2>{selected.name}</h2><p>{selected.description}</p><p>Estoque fake: {selected.stock} unidades</p><div className="price"><strong>{brl.format(productPrice(selected))}</strong></div><button className="btn primary" onClick={() => addToCart(selected)}>Adicionar ao carrinho</button></article></div>}
 
     {checkoutOpen && <div className="modal" role="dialog" aria-modal="true"><form className="checkout" onSubmit={submitOrder}><button type="button" className="close" onClick={() => setCheckoutOpen(false)}>×</button><p className="eyebrow">Checkout fake</p><h2>Finalizar compra</h2><input required placeholder="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /><input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /><input required placeholder="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /><select value={form.payment} onChange={(e) => setForm({ ...form, payment: e.target.value })}><option value="pix-fake">Pix fake</option><option value="cartao-fake">Cartão fake</option><option value="boleto-fake">Boleto fake</option></select><div className="summary"><strong>Resumo do pedido</strong>{cart.map((item) => <span key={item.id}>{item.quantity}x {item.name}</span>)}<b>Total: {brl.format(cartTotal)}</b></div><button className="btn primary" type="submit">Comprar agora</button></form></div>}
+    <TrackingDebugPanel />
   </>;
 }
 

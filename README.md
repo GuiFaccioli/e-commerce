@@ -28,7 +28,19 @@ npm run typecheck
 
 ## Tracking
 
-Consulte `docs/ECOMMERCE_TRACKING.md` para os eventos implementados e instruções de teste no console.
+Consulte `docs/ECOMMERCE_TRACKING.md`, `docs/TRACKING_EVENTS.md` e `docs/TRACKING_SETUP.md` para os eventos implementados e instruções de teste no console.
+
+Debug local:
+
+```txt
+?debug_tracking=true
+```
+
+GTM opcional via variável de ambiente, sem ID hardcoded:
+
+```txt
+VITE_GTM_ID=GTM-XXXXXXX
+```
 
 ## Backend e deploy
 

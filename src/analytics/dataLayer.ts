@@ -1,31 +1,34 @@
 import type { CartItem, Product } from '../data/products';
+import { pushToDataLayer } from '../lib/dataLayer';
 
-declare global { interface Window { dataLayer?: Record<string, unknown>[] } }
-
-type Ga4Item = { item_id: string; item_name: string; item_category: string; price: number; quantity: number };
+type AnalyticsItem = {
+  item_id: string;
+  item_name: string;
+  item_category: string;
+  price: number;
+  quantity: number;
+};
 
 const priceOf = (product: Product) => product.promotionalPrice ?? product.price;
-const toGa4Item = (item: Product | CartItem, quantity = 'quantity' in item ? item.quantity : 1): Ga4Item => ({
-  item_id: item.id,
-  item_name: item.name,
-  item_category: item.category,
-  price: priceOf(item),
-  quantity,
-});
 
-function pushToDataLayer(payload: Record<string, unknown>) {
-  if (typeof window === 'undefined') return;
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push(payload);
+export function mapProductToAnalyticsItem(product: Product | CartItem, quantity = 'quantity' in product ? product.quantity : 1): AnalyticsItem {
+  return {
+    item_id: product.id,
+    item_name: product.name,
+    item_category: product.category,
+    price: priceOf(product),
+    quantity,
+  };
 }
 
 export const cartValue = (items: CartItem[]) => items.reduce((total, item) => total + priceOf(item) * item.quantity, 0);
-export const pushViewItem = (product: Product) => pushToDataLayer({ event: 'view_item', ecommerce: { currency: 'BRL', value: priceOf(product), items: [toGa4Item(product)] } });
-export const pushSelectItem = (product: Product) => pushToDataLayer({ event: 'select_item', ecommerce: { items: [toGa4Item(product)] } });
-export const pushAddToCart = (product: Product, quantity = 1) => pushToDataLayer({ event: 'add_to_cart', ecommerce: { currency: 'BRL', value: priceOf(product) * quantity, items: [toGa4Item(product, quantity)] } });
-export const pushRemoveFromCart = (product: Product, quantity = 1) => pushToDataLayer({ event: 'remove_from_cart', ecommerce: { currency: 'BRL', value: priceOf(product) * quantity, items: [toGa4Item(product, quantity)] } });
-export const pushViewCart = (items: CartItem[]) => pushToDataLayer({ event: 'view_cart', ecommerce: { currency: 'BRL', value: cartValue(items), items: items.map((item) => toGa4Item(item)) } });
-export const pushBeginCheckout = (items: CartItem[]) => pushToDataLayer({ event: 'begin_checkout', ecommerce: { currency: 'BRL', value: cartValue(items), items: items.map((item) => toGa4Item(item)) } });
-export const pushPurchase = (transactionId: string, items: CartItem[]) => pushToDataLayer({ event: 'purchase', ecommerce: { transaction_id: transactionId, currency: 'BRL', value: cartValue(items), items: items.map((item) => toGa4Item(item)) } });
+export const pushPageViewCustom = (path: string, title: string) => pushToDataLayer({ event: 'page_view_custom', page_location: path, page_title: title });
+export const pushViewItem = (product: Product) => pushToDataLayer({ event: 'view_item', ecommerce: { currency: 'BRL', value: priceOf(product), items: [mapProductToAnalyticsItem(product)] } });
+export const pushSelectItem = (product: Product) => pushToDataLayer({ event: 'select_item', ecommerce: { items: [mapProductToAnalyticsItem(product)] } });
+export const pushAddToCart = (product: Product, quantity = 1) => pushToDataLayer({ event: 'add_to_cart', ecommerce: { currency: 'BRL', value: priceOf(product) * quantity, items: [mapProductToAnalyticsItem(product, quantity)] } });
+export const pushRemoveFromCart = (product: Product, quantity = 1) => pushToDataLayer({ event: 'remove_from_cart', ecommerce: { currency: 'BRL', value: priceOf(product) * quantity, items: [mapProductToAnalyticsItem(product, quantity)] } });
+export const pushViewCart = (items: CartItem[]) => pushToDataLayer({ event: 'view_cart', ecommerce: { currency: 'BRL', value: cartValue(items), items: items.map((item) => mapProductToAnalyticsItem(item)) } });
+export const pushBeginCheckout = (items: CartItem[]) => pushToDataLayer({ event: 'begin_checkout', ecommerce: { currency: 'BRL', value: cartValue(items), items: items.map((item) => mapProductToAnalyticsItem(item)) } });
+export const pushPurchase = (transactionId: string, items: CartItem[]) => pushToDataLayer({ event: 'purchase', ecommerce: { transaction_id: transactionId, currency: 'BRL', value: cartValue(items), items: items.map((item) => mapProductToAnalyticsItem(item)) } });
 export const pushSearch = (searchTerm: string) => pushToDataLayer({ event: 'search', search_term: searchTerm });
 export const pushFilterProducts = (category: string) => pushToDataLayer({ event: 'filter_products', filter_type: 'category', filter_value: category });
