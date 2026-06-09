@@ -13,7 +13,9 @@ function summarize(payload: Record<string, unknown>) {
     transaction_id: ecommerce?.transaction_id,
     items: ecommerce?.items?.length,
     search_term: payload.search_term,
-    filter_value: payload.filter_value,
+    filter_category: payload.filter_category,
+    filter_term: payload.filter_term,
+    results_count: payload.results_count,
   };
 }
 
