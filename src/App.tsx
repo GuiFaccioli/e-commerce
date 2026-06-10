@@ -1,12 +1,26 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { categories, products, type CartItem, type Product } from './data/products';
+import { categories, products, type CartItem, type ColorVariant, type Product } from './data/products';
 import { TrackingDebugPanel } from './components/TrackingDebugPanel';
-import { cartValue, pushAddToCart, pushBeginCheckout, pushFilterProducts, pushPageViewCustom, pushPurchase, pushRemoveFromCart, pushSearch, pushSelectItem, pushViewCart, pushViewItem } from './analytics/dataLayer';
+import { cartValue, pushAddToCart, pushBeginCheckout, pushFilterProducts, pushPageViewCustom, pushPurchase, pushRemoveFromCart, pushSearch, pushSelectItem, pushSelectItemVariant, pushViewCart, pushViewItem } from './analytics/dataLayer';
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const productPrice = (product: Product) => product.promotionalPrice ?? product.price;
 
 type CheckoutForm = { name: string; email: string; phone: string; payment: string };
+
+function getVariant(product: Product, variantId?: string): ColorVariant {
+  return product.colorVariants.find((variant) => variant.id === variantId) ?? product.colorVariants[0];
+}
+
+function withVariant(product: Product, variant: ColorVariant): Product {
+  return {
+    ...product,
+    image: variant.image,
+    selectedColor: variant.colorName,
+    selectedImage: variant.image,
+    selectedVariantId: variant.id,
+  };
+}
 
 function App() {
   const [category, setCategory] = useState('Todos');
@@ -14,6 +28,7 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [order, setOrder] = useState<{ id: string; total: number } | null>(null);
   const [form, setForm] = useState<CheckoutForm>({ name: '', email: '', phone: '', payment: 'pix-fake' });
@@ -36,6 +51,10 @@ function App() {
   const cartTotal = cartValue(cart);
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const offers = products.filter((product) => product.promotionalPrice);
+
+  function selectedProduct(product: Product) {
+    return withVariant(product, getVariant(product, selectedVariants[product.id]));
+  }
 
   function scrollToProducts() {
     document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
@@ -62,26 +81,38 @@ function App() {
     if (normalizedSearch.length > 1) pushSearch(normalizedSearch);
   }
 
+  function chooseVariant(product: Product, variant: ColorVariant) {
+    const currentVariant = getVariant(product, selectedVariants[product.id]);
+    if (currentVariant.id === variant.id) return;
+
+    setSelectedVariants((current) => ({ ...current, [product.id]: variant.id }));
+    pushSelectItemVariant(withVariant(product, variant));
+  }
+
   function viewDetails(product: Product) {
-    pushSelectItem(product);
-    pushViewItem(product);
+    const productWithVariant = selectedProduct(product);
+    pushSelectItem(productWithVariant);
+    pushViewItem(productWithVariant);
     setSelected(product);
   }
 
   function addToCart(product: Product) {
+    const productWithVariant = selectedProduct(product);
+    const cartKey = `${productWithVariant.id}-${productWithVariant.selectedVariantId}`;
+
     setCart((current) => {
-      const exists = current.find((item) => item.id === product.id);
-      if (exists) return current.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...current, { ...product, quantity: 1 }];
+      const exists = current.find((item) => item.cartKey === cartKey);
+      if (exists) return current.map((item) => item.cartKey === cartKey ? { ...item, quantity: item.quantity + 1 } : item);
+      return [...current, { ...productWithVariant, cartKey, quantity: 1, selectedColor: productWithVariant.selectedColor!, selectedImage: productWithVariant.selectedImage!, selectedVariantId: productWithVariant.selectedVariantId! }];
     });
-    pushAddToCart(product);
+    pushAddToCart(productWithVariant);
   }
 
   function changeQuantity(product: CartItem, delta: number) {
     if (delta < 0) pushRemoveFromCart(product, 1);
     if (delta > 0) pushAddToCart(product, 1);
     setCart((current) => current.flatMap((item) => {
-      if (item.id !== product.id) return [item];
+      if (item.cartKey !== product.cartKey) return [item];
       const quantity = item.quantity + delta;
       return quantity > 0 ? [{ ...item, quantity }] : [];
     }));
@@ -89,7 +120,7 @@ function App() {
 
   function removeItem(product: CartItem) {
     pushRemoveFromCart(product, product.quantity);
-    setCart((current) => current.filter((item) => item.id !== product.id));
+    setCart((current) => current.filter((item) => item.cartKey !== product.cartKey));
   }
 
   function openCart() {
@@ -126,6 +157,27 @@ function App() {
     }, 500);
   }
 
+  function ColorOptions({ product }: { product: Product }) {
+    const activeVariant = getVariant(product, selectedVariants[product.id]);
+
+    return <div className="color-options" aria-label={`Cores de ${product.name}`}>
+      {product.colorVariants.map((variant) => <button
+        type="button"
+        key={variant.id}
+        className={`color-option ${activeVariant.id === variant.id ? 'color-option-selected' : ''}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          chooseVariant(product, variant);
+        }}
+        title={variant.label}
+        aria-label={`Selecionar cor ${variant.label}`}
+      >
+        <span className="color-swatch" style={{ backgroundColor: variant.swatch }} />
+        <span>{variant.label}</span>
+      </button>)}
+    </div>;
+  }
+
   return <>
     <header className="header">
       <a className="logo" href="#top">TechZone <span>Periféricos</span></a>
@@ -156,15 +208,20 @@ function App() {
       </section>
 
       <section className="grid">
-        {filteredProducts.map((product) => <article className="product-card" key={product.id} onClick={() => pushSelectItem(product)}>
-          <div className="visual"><span>{product.image}</span><em>{product.tag}</em></div>
-          <p className="category">{product.category} · ★ {product.rating}</p>
-          <h3>{product.name}</h3>
-          <p>{product.description}</p>
-          <div className="price">{product.promotionalPrice && <del>{brl.format(product.price)}</del>}<strong>{brl.format(productPrice(product))}</strong></div>
-          <small>Estoque fake: {product.stock}</small>
-          <div className="card-actions"><button className="btn outline-light" onClick={(event) => { event.stopPropagation(); viewDetails(product); }}>Ver detalhes</button><button className="btn primary" onClick={(event) => { event.stopPropagation(); addToCart(product); }}>Carrinho</button></div>
-        </article>)}
+        {filteredProducts.map((product) => {
+          const productWithVariant = selectedProduct(product);
+
+          return <article className="product-card" key={product.id} onClick={() => pushSelectItem(productWithVariant)}>
+            <div className="product-image-wrap"><img className="product-image" src={productWithVariant.image} alt={`${product.name} - ${productWithVariant.selectedColor}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} /><em>{product.tag}</em></div>
+            <p className="category">{product.category} · ★ {product.rating}</p>
+            <h3>{product.name}</h3>
+            <p>{product.description}</p>
+            <ColorOptions product={product} />
+            <div className="price">{product.promotionalPrice && <del>{brl.format(product.price)}</del>}<strong>{brl.format(productPrice(product))}</strong></div>
+            <small>Estoque fake: {product.stock}</small>
+            <div className="card-actions"><button className="btn outline-light" onClick={(event) => { event.stopPropagation(); viewDetails(product); }}>Ver detalhes</button><button className="btn primary" onClick={(event) => { event.stopPropagation(); addToCart(product); }}>Carrinho</button></div>
+          </article>;
+        })}
       </section>
 
       <section className="offers" id="offers"><p className="eyebrow">Ofertas</p><h2>{offers.length} periféricos com preço promocional</h2><p>Produtos fictícios para validar eventos de seleção, detalhe e adição ao carrinho.</p></section>
@@ -172,14 +229,22 @@ function App() {
 
     <aside className={`drawer ${cartOpen ? 'open' : ''}`} aria-hidden={!cartOpen}>
       <div className="drawer-head"><h2>Carrinho</h2><button onClick={() => setCartOpen(false)}>Fechar</button></div>
-      {!cart.length ? <p>Seu carrinho está vazio.</p> : cart.map((item) => <div className="cart-item" key={item.id}><div><strong>{item.name}</strong><span>{brl.format(productPrice(item))}</span></div><div className="qty"><button onClick={() => changeQuantity(item, -1)}>-</button><span>{item.quantity}</span><button onClick={() => changeQuantity(item, 1)}>+</button></div><button onClick={() => removeItem(item)}>Remover</button></div>)}
+      {!cart.length ? <p>Seu carrinho está vazio.</p> : cart.map((item) => <div className="cart-item" key={item.cartKey}>
+        <img className="cart-thumb" src={item.selectedImage} alt={`${item.name} - ${item.selectedColor}`} />
+        <div><strong>{item.name}</strong><span>Cor: {item.selectedColor}</span><span>{brl.format(productPrice(item))}</span></div>
+        <div className="qty"><button onClick={() => changeQuantity(item, -1)}>-</button><span>{item.quantity}</span><button onClick={() => changeQuantity(item, 1)}>+</button></div>
+        <button onClick={() => removeItem(item)}>Remover</button>
+      </div>)}
       <div className="subtotal"><span>Subtotal</span><strong>{brl.format(cartTotal)}</strong></div>
       <div className="drawer-actions"><button className="btn outline-light" onClick={() => setCartOpen(false)}>Continuar comprando</button><button className="btn outline-light" onClick={() => { cart.forEach((item) => pushRemoveFromCart(item, item.quantity)); setCart([]); }}>Limpar</button><button className="btn primary" onClick={beginCheckout}>Finalizar compra</button></div>
     </aside>
 
-    {selected && <div className="modal" role="dialog" aria-modal="true"><article><button className="close" onClick={() => setSelected(null)}>×</button><div className="visual large"><span>{selected.image}</span><em>{selected.tag}</em></div><p className="category">{selected.category} · ★ {selected.rating}</p><h2>{selected.name}</h2><p>{selected.description}</p><p>Estoque fake: {selected.stock} unidades</p><div className="price"><strong>{brl.format(productPrice(selected))}</strong></div><button className="btn primary" onClick={() => addToCart(selected)}>Adicionar ao carrinho</button></article></div>}
+    {selected && (() => {
+      const modalProduct = selectedProduct(selected);
+      return <div className="modal" role="dialog" aria-modal="true"><article><button className="close" onClick={() => setSelected(null)}>×</button><div className="product-image-wrap product-image-wrap-large"><img className="product-image" src={modalProduct.image} alt={`${selected.name} - ${modalProduct.selectedColor}`} /><em>{selected.tag}</em></div><p className="category">{selected.category} · ★ {selected.rating}</p><h2>{selected.name}</h2><p>{selected.description}</p><ColorOptions product={selected} /><p>Cor selecionada: <strong>{modalProduct.selectedColor}</strong></p><p>Estoque fake: {selected.stock} unidades</p><div className="price"><strong>{brl.format(productPrice(selected))}</strong></div><button className="btn primary" onClick={() => addToCart(selected)}>Adicionar ao carrinho</button></article></div>;
+    })()}
 
-    {checkoutOpen && <div className="modal" role="dialog" aria-modal="true"><form className="checkout" onSubmit={submitOrder}><button type="button" className="close" onClick={() => setCheckoutOpen(false)}>×</button><p className="eyebrow">Checkout fake</p><h2>Finalizar compra</h2><input required placeholder="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /><input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /><input required placeholder="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /><select value={form.payment} onChange={(e) => setForm({ ...form, payment: e.target.value })}><option value="pix-fake">Pix fake</option><option value="cartao-fake">Cartão fake</option><option value="boleto-fake">Boleto fake</option></select><div className="summary"><strong>Resumo do pedido</strong>{cart.map((item) => <span key={item.id}>{item.quantity}x {item.name}</span>)}<b>Total: {brl.format(cartTotal)}</b></div><button className="btn primary" type="submit" disabled={isPurchasing}>Comprar agora</button></form></div>}
+    {checkoutOpen && <div className="modal" role="dialog" aria-modal="true"><form className="checkout" onSubmit={submitOrder}><button type="button" className="close" onClick={() => setCheckoutOpen(false)}>×</button><p className="eyebrow">Checkout fake</p><h2>Finalizar compra</h2><input required placeholder="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /><input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /><input required placeholder="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /><select value={form.payment} onChange={(e) => setForm({ ...form, payment: e.target.value })}><option value="pix-fake">Pix fake</option><option value="cartao-fake">Cartão fake</option><option value="boleto-fake">Boleto fake</option></select><div className="summary"><strong>Resumo do pedido</strong>{cart.map((item) => <span key={item.cartKey}>{item.quantity}x {item.name} · {item.selectedColor}</span>)}<b>Total: {brl.format(cartTotal)}</b></div><button className="btn primary" type="submit" disabled={isPurchasing}>Comprar agora</button></form></div>}
     <TrackingDebugPanel />
   </>;
 }

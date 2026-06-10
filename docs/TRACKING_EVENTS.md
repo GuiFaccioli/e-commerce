@@ -138,3 +138,58 @@ window.dataLayer.push({ event: "search", search_term: "mouse" })
 ```js
 window.dataLayer.push({ event: "filter_products", filter_category: "Mouses", filter_term: "pro", results_count: 1 })
 ```
+
+## item_variant em eventos e-commerce
+
+Os eventos e-commerce passam a enriquecer cada item com `item_variant` quando existe cor selecionada.
+
+Exemplo de item:
+
+```js
+{
+  item_id: "TZ-K87",
+  item_name: "Teclado Mecânico RGB Phantom K87",
+  item_category: "Teclados",
+  item_variant: "Branco",
+  price: 349.9,
+  quantity: 1
+}
+```
+
+Eventos afetados:
+
+- `view_item`
+- `select_item`
+- `select_item_variant`
+- `add_to_cart`
+- `remove_from_cart`
+- `view_cart`
+- `begin_checkout`
+- `purchase`
+
+## select_item_variant
+
+- Ação real: usuário clica em uma cor/variação do produto no card ou no modal de detalhes.
+- Onde nasce: `src/App.tsx`, função `chooseVariant()`.
+- Payload esperado: `ecommerce.currency`, `ecommerce.value`, `ecommerce.items` com `item_variant` dentro do item.
+- Futuro GA4: evento customizado `select_item_variant`.
+- Métrica futura: interesse por variação/cor de produto.
+- Qualidade: não deve disparar ao renderizar o card; não dispara se a cor clicada já estiver selecionada.
+
+```js
+window.dataLayer.push({
+  event: "select_item_variant",
+  ecommerce: {
+    currency: "BRL",
+    value: 349.9,
+    items: [{
+      item_id: "TZ-K87",
+      item_name: "Teclado Mecânico RGB Phantom K87",
+      item_category: "Teclados",
+      item_variant: "Branco",
+      price: 349.9,
+      quantity: 1
+    }]
+  }
+})
+```

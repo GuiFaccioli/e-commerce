@@ -16,9 +16,18 @@
         "page_title": "page_title",
         "page_path": "page_path"
       },
-      "requiredParameters": ["page_location", "page_title"],
-      "futureMetrics": ["visualizações de página", "entrada na loja"],
-      "qualityRisks": ["page_path depende de implementação futura no dataLayer", "hot reload em desenvolvimento pode gerar ruído"]
+      "requiredParameters": [
+        "page_location",
+        "page_title"
+      ],
+      "futureMetrics": [
+        "visualizações de página",
+        "entrada na loja"
+      ],
+      "qualityRisks": [
+        "page_path depende de implementação futura no dataLayer",
+        "hot reload em desenvolvimento pode gerar ruído"
+      ]
     },
     {
       "event": "view_item",
@@ -32,9 +41,18 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["currency", "value", "items"],
-      "futureMetrics": ["visualizações de produto", "interesse em produto"],
-      "qualityRisks": ["preço deve refletir preço promocional quando existir"]
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "visualizações de produto",
+        "interesse em produto"
+      ],
+      "qualityRisks": [
+        "preço deve refletir preço promocional quando existir"
+      ]
     },
     {
       "event": "select_item",
@@ -48,9 +66,44 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["currency", "value", "items"],
-      "futureMetrics": ["cliques em produto", "CTR de produto"],
-      "qualityRisks": ["cliques em elementos internos precisam evitar duplicidade"]
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "cliques em produto",
+        "CTR de produto"
+      ],
+      "qualityRisks": [
+        "cliques em elementos internos precisam evitar duplicidade"
+      ]
+    },
+    {
+      "event": "select_item_variant",
+      "ga4EventName": "select_item_variant",
+      "type": "ecommerce",
+      "triggerName": "CE - select_item_variant",
+      "tagName": "GA4 Event - select_item_variant",
+      "description": "Usuário seleciona uma cor ou variação de produto.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "interesse por variação de produto",
+        "preferência de cor"
+      ],
+      "qualityRisks": [
+        "deve disparar apenas em clique real",
+        "não deve disparar ao renderizar o card"
+      ]
     },
     {
       "event": "add_to_cart",
@@ -64,9 +117,18 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["currency", "value", "items"],
-      "futureMetrics": ["adições ao carrinho", "valor adicionado ao carrinho"],
-      "qualityRisks": ["cada clique real deve gerar um evento, mas sem duplicidade técnica"]
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "adições ao carrinho",
+        "valor adicionado ao carrinho"
+      ],
+      "qualityRisks": [
+        "cada clique real deve gerar um evento, mas sem duplicidade técnica"
+      ]
     },
     {
       "event": "filter_products",
@@ -80,9 +142,18 @@
         "filter_term": "filter_term",
         "results_count": "results_count"
       },
-      "requiredParameters": ["filter_category", "filter_term", "results_count"],
-      "futureMetrics": ["uso de filtros", "buscas internas com resultado"],
-      "qualityRisks": ["digitação pode gerar múltiplos eventos até existir debounce"]
+      "requiredParameters": [
+        "filter_category",
+        "filter_term",
+        "results_count"
+      ],
+      "futureMetrics": [
+        "uso de filtros",
+        "buscas internas com resultado"
+      ],
+      "qualityRisks": [
+        "digitação pode gerar múltiplos eventos até existir debounce"
+      ]
     },
     {
       "event": "view_cart",
@@ -96,9 +167,18 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["currency", "value", "items"],
-      "futureMetrics": ["visualizações de carrinho", "intenção de compra"],
-      "qualityRisks": ["carrinho vazio deve enviar value 0 e items vazio"]
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "visualizações de carrinho",
+        "intenção de compra"
+      ],
+      "qualityRisks": [
+        "carrinho vazio deve enviar value 0 e items vazio"
+      ]
     },
     {
       "event": "begin_checkout",
@@ -112,9 +192,18 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["currency", "value", "items"],
-      "futureMetrics": ["inícios de checkout", "taxa carrinho para checkout"],
-      "qualityRisks": ["não deve enviar dados pessoais do formulário"]
+      "requiredParameters": [
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "inícios de checkout",
+        "taxa carrinho para checkout"
+      ],
+      "qualityRisks": [
+        "não deve enviar dados pessoais do formulário"
+      ]
     },
     {
       "event": "purchase",
@@ -129,9 +218,22 @@
         "value": "ecommerce.value",
         "items": "ecommerce.items"
       },
-      "requiredParameters": ["transaction_id", "currency", "value", "items"],
-      "futureMetrics": ["compras simuladas", "receita simulada", "taxa de conversão fake"],
-      "qualityRisks": ["transaction_id deve ser único", "value deve bater com total do carrinho", "purchase não pode duplicar"]
+      "requiredParameters": [
+        "transaction_id",
+        "currency",
+        "value",
+        "items"
+      ],
+      "futureMetrics": [
+        "compras simuladas",
+        "receita simulada",
+        "taxa de conversão fake"
+      ],
+      "qualityRisks": [
+        "transaction_id deve ser único",
+        "value deve bater com total do carrinho",
+        "purchase não pode duplicar"
+      ]
     }
   ]
 }

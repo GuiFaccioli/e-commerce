@@ -4,12 +4,12 @@ E-commerce fake de periféricos gamer e acessórios para PC criado para estudo d
 
 ## Funcionalidades
 
-- Produtos, ofertas, categorias e busca local.
+- Produtos com imagens locais, variações de cor, ofertas, categorias e busca local.
 - Modal de detalhes de produto.
 - Carrinho com adicionar, remover, aumentar, diminuir e limpar.
 - Checkout fake com formulário e compra simulada.
 - Geração de `transaction_id` fake no padrão `TZ- + timestamp`.
-- Eventos e-commerce preparados em `window.dataLayer` sem GTM/GA4 real.
+- Eventos e-commerce preparados em `window.dataLayer` sem GTM/GA4 real, incluindo variação de cor em `item_variant`.
 
 ## Rodar localmente
 
