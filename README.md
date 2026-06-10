@@ -61,6 +61,18 @@ npm run gtm:dry-run
 
 Esse comando não altera o GTM real. Ele apenas mostra variáveis, triggers e tags planejadas para configuração futura.
 
+## GTM API Preflight
+
+Para comparar o contrato local com o GTM real em modo somente leitura:
+
+```bash
+npm run gtm:preflight
+```
+
+Esse comando usa a API real do GTM com escopo read-only, lista contas/containers/workspaces e mostra o diff. Ele não cria, edita, deleta nem publica nada.
+
+Configuração detalhada: `docs/GTM_API_PREFLIGHT.md`.
+
 ## Backend e deploy
 
 O projeto não possui backend: tudo funciona com estado local no navegador. O deploy do front-end está preparado para Vercel com `vercel.json`.
