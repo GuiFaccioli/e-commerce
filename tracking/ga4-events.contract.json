@@ -1,0 +1,137 @@
+{
+  "version": "1.0.0",
+  "project": "TechZone Periféricos",
+  "containerId": "GTM-XXXXXXX",
+  "measurementId": "G-XXXXXXXXXX",
+  "events": [
+    {
+      "event": "page_view_custom",
+      "ga4EventName": "page_view_custom",
+      "type": "behavior",
+      "triggerName": "CE - page_view_custom",
+      "tagName": "GA4 Event - page_view_custom",
+      "description": "Carregamento inicial da loja TechZone no navegador.",
+      "parameters": {
+        "page_location": "page_location",
+        "page_title": "page_title",
+        "page_path": "page_path"
+      },
+      "requiredParameters": ["page_location", "page_title"],
+      "futureMetrics": ["visualizações de página", "entrada na loja"],
+      "qualityRisks": ["page_path depende de implementação futura no dataLayer", "hot reload em desenvolvimento pode gerar ruído"]
+    },
+    {
+      "event": "view_item",
+      "ga4EventName": "view_item",
+      "type": "ecommerce",
+      "triggerName": "CE - view_item",
+      "tagName": "GA4 Event - view_item",
+      "description": "Usuário abre detalhes de um produto.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["currency", "value", "items"],
+      "futureMetrics": ["visualizações de produto", "interesse em produto"],
+      "qualityRisks": ["preço deve refletir preço promocional quando existir"]
+    },
+    {
+      "event": "select_item",
+      "ga4EventName": "select_item",
+      "type": "ecommerce",
+      "triggerName": "CE - select_item",
+      "tagName": "GA4 Event - select_item",
+      "description": "Usuário clica em um card ou seleciona um produto.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["currency", "value", "items"],
+      "futureMetrics": ["cliques em produto", "CTR de produto"],
+      "qualityRisks": ["cliques em elementos internos precisam evitar duplicidade"]
+    },
+    {
+      "event": "add_to_cart",
+      "ga4EventName": "add_to_cart",
+      "type": "ecommerce",
+      "triggerName": "CE - add_to_cart",
+      "tagName": "GA4 Event - add_to_cart",
+      "description": "Usuário adiciona produto ao carrinho ou aumenta quantidade.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["currency", "value", "items"],
+      "futureMetrics": ["adições ao carrinho", "valor adicionado ao carrinho"],
+      "qualityRisks": ["cada clique real deve gerar um evento, mas sem duplicidade técnica"]
+    },
+    {
+      "event": "filter_products",
+      "ga4EventName": "filter_products",
+      "type": "behavior",
+      "triggerName": "CE - filter_products",
+      "tagName": "GA4 Event - filter_products",
+      "description": "Usuário filtra produtos por categoria ou termo de busca.",
+      "parameters": {
+        "filter_category": "filter_category",
+        "filter_term": "filter_term",
+        "results_count": "results_count"
+      },
+      "requiredParameters": ["filter_category", "filter_term", "results_count"],
+      "futureMetrics": ["uso de filtros", "buscas internas com resultado"],
+      "qualityRisks": ["digitação pode gerar múltiplos eventos até existir debounce"]
+    },
+    {
+      "event": "view_cart",
+      "ga4EventName": "view_cart",
+      "type": "ecommerce",
+      "triggerName": "CE - view_cart",
+      "tagName": "GA4 Event - view_cart",
+      "description": "Usuário abre o carrinho.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["currency", "value", "items"],
+      "futureMetrics": ["visualizações de carrinho", "intenção de compra"],
+      "qualityRisks": ["carrinho vazio deve enviar value 0 e items vazio"]
+    },
+    {
+      "event": "begin_checkout",
+      "ga4EventName": "begin_checkout",
+      "type": "ecommerce",
+      "triggerName": "CE - begin_checkout",
+      "tagName": "GA4 Event - begin_checkout",
+      "description": "Usuário inicia checkout fake com carrinho não vazio.",
+      "parameters": {
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["currency", "value", "items"],
+      "futureMetrics": ["inícios de checkout", "taxa carrinho para checkout"],
+      "qualityRisks": ["não deve enviar dados pessoais do formulário"]
+    },
+    {
+      "event": "purchase",
+      "ga4EventName": "purchase",
+      "type": "ecommerce",
+      "triggerName": "CE - purchase",
+      "tagName": "GA4 Event - purchase",
+      "description": "Usuário conclui compra simulada no checkout fake.",
+      "parameters": {
+        "transaction_id": "ecommerce.transaction_id",
+        "currency": "ecommerce.currency",
+        "value": "ecommerce.value",
+        "items": "ecommerce.items"
+      },
+      "requiredParameters": ["transaction_id", "currency", "value", "items"],
+      "futureMetrics": ["compras simuladas", "receita simulada", "taxa de conversão fake"],
+      "qualityRisks": ["transaction_id deve ser único", "value deve bater com total do carrinho", "purchase não pode duplicar"]
+    }
+  ]
+}

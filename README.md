@@ -49,6 +49,18 @@ GTM opcional:
 VITE_GTM_ID=GTM-XXXXXXX
 ```
 
+## GTM Automation Dry Run
+
+O contrato de automação fica em `tracking/ga4-events.contract.json`.
+
+Para ver o plano local do que seria criado no GTM:
+
+```bash
+npm run gtm:dry-run
+```
+
+Esse comando não altera o GTM real. Ele apenas mostra variáveis, triggers e tags planejadas para configuração futura.
+
 ## Backend e deploy
 
 O projeto não possui backend: tudo funciona com estado local no navegador. O deploy do front-end está preparado para Vercel com `vercel.json`.
