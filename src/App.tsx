@@ -29,6 +29,7 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [favoriteProductIds, setFavoriteProductIds] = useState<string[]>([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [order, setOrder] = useState<{ id: string; total: number } | null>(null);
   const [form, setForm] = useState<CheckoutForm>({ name: '', email: '', phone: '', payment: 'pix-fake' });
@@ -42,11 +43,23 @@ function App() {
     pushPageViewCustom(window.location.href, document.title);
   }, []);
 
-  const filteredProducts = useMemo(() => products.filter((product) => {
-    const matchesCategory = category === 'Todos' || product.category === category;
-    const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  }), [category, search]);
+  const filteredProducts = useMemo(() => {
+    const visibleProducts = products.filter((product) => {
+      const matchesCategory = category === 'Todos' || product.category === category;
+      const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+
+    return [...visibleProducts].sort((first, second) => {
+      const firstFavoriteIndex = favoriteProductIds.indexOf(first.id);
+      const secondFavoriteIndex = favoriteProductIds.indexOf(second.id);
+
+      if (firstFavoriteIndex === -1 && secondFavoriteIndex === -1) return 0;
+      if (firstFavoriteIndex === -1) return 1;
+      if (secondFavoriteIndex === -1) return -1;
+      return firstFavoriteIndex - secondFavoriteIndex;
+    });
+  }, [category, favoriteProductIds, search]);
 
   const cartTotal = cartValue(cart);
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -79,6 +92,13 @@ function App() {
     setSearch(value);
     pushFilterProducts(category, normalizedSearch, countFilteredProducts(category, normalizedSearch));
     if (normalizedSearch.length > 1) pushSearch(normalizedSearch);
+  }
+
+  function toggleFavorite(productId: string) {
+    setFavoriteProductIds((current) => {
+      if (current.includes(productId)) return current.filter((id) => id !== productId);
+      return [...current, productId];
+    });
   }
 
   function chooseVariant(product: Product, variant: ColorVariant) {
@@ -210,9 +230,20 @@ function App() {
       <section className="grid">
         {filteredProducts.map((product) => {
           const productWithVariant = selectedProduct(product);
+          const isFavorite = favoriteProductIds.includes(product.id);
 
           return <article className="product-card" key={product.id} onClick={() => pushSelectItem(productWithVariant)}>
-            <div className="product-image-wrap"><img className="product-image" src={productWithVariant.image} alt={`${product.name} - ${productWithVariant.selectedColor}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} /><em>{product.tag}</em></div>
+            <div className="product-image-wrap"><button
+              type="button"
+              className={`favorite-button ${isFavorite ? 'favorite-button-active' : ''}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleFavorite(product.id);
+              }}
+              aria-pressed={isFavorite}
+              aria-label={isFavorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
+              title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            >★</button><img className="product-image" src={productWithVariant.image} alt={`${product.name} - ${productWithVariant.selectedColor}`} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} /><em>{product.tag}</em></div>
             <p className="category">{product.category} · ★ {product.rating}</p>
             <h3>{product.name}</h3>
             <p>{product.description}</p>

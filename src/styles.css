@@ -374,6 +374,35 @@ main { overflow: hidden; }
   text-transform: uppercase;
 }
 
+.favorite-button {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #000000;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #a1a1aa;
+  font-size: 22px;
+  line-height: 1;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+
+.favorite-button:hover {
+  transform: scale(1.06);
+  color: #000000;
+}
+
+.favorite-button-active {
+  background: #c1fbd4;
+  color: #000000;
+}
+
 .color-options {
   display: flex;
   flex-wrap: wrap;
