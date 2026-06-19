@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { categories, products, type CartItem, type ColorVariant, type Product } from './data/products';
 import { TrackingDebugPanel } from './components/TrackingDebugPanel';
 import { cartValue, pushAddToCart, pushBeginCheckout, pushFilterProducts, pushPageViewCustom, pushPurchase, pushRemoveFromCart, pushSearch, pushSelectItem, pushSelectItemVariant, pushViewCart, pushViewItem } from './analytics/dataLayer';
+import { getServerCookieContext, saveServerCookieContext, type ServerCartItem } from './lib/serverCookieContext';
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const productPrice = (product: Product) => product.promotionalPrice ?? product.price;
@@ -22,6 +23,21 @@ function withVariant(product: Product, variant: ColorVariant): Product {
   };
 }
 
+function cartItemFromServerCookie(item: ServerCartItem): CartItem[] {
+  const product = products.find((candidate) => candidate.id === item.id);
+  if (!product) return [];
+
+  const productWithVariant = withVariant(product, getVariant(product, item.variantId));
+  return [{
+    ...productWithVariant,
+    cartKey: `${productWithVariant.id}-${productWithVariant.selectedVariantId}`,
+    quantity: item.quantity,
+    selectedColor: productWithVariant.selectedColor!,
+    selectedImage: productWithVariant.selectedImage!,
+    selectedVariantId: productWithVariant.selectedVariantId!,
+  }];
+}
+
 function App() {
   const [category, setCategory] = useState('Todos');
   const [search, setSearch] = useState('');
@@ -30,18 +46,53 @@ function App() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [favoriteProductIds, setFavoriteProductIds] = useState<string[]>([]);
+  const [recentlyViewedProductIds, setRecentlyViewedProductIds] = useState<string[]>([]);
+  const [serverSessionId, setServerSessionId] = useState<string | null>(null);
+  const [serverContextUpdatedAt, setServerContextUpdatedAt] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [order, setOrder] = useState<{ id: string; total: number } | null>(null);
   const [form, setForm] = useState<CheckoutForm>({ name: '', email: '', phone: '', payment: 'pix-fake' });
   const [isPurchasing, setIsPurchasing] = useState(false);
   const pageViewTracked = useRef(false);
   const purchaseInProgress = useRef(false);
+  const serverContextLoaded = useRef(false);
 
   useEffect(() => {
     if (pageViewTracked.current) return;
     pageViewTracked.current = true;
     pushPageViewCustom(window.location.href, document.title);
   }, []);
+
+  useEffect(() => {
+    getServerCookieContext().then((context) => {
+      if (!context) {
+        serverContextLoaded.current = true;
+        return;
+      }
+
+      setServerSessionId(context.sessionId);
+      setServerContextUpdatedAt(context.lastUpdatedAt);
+      setFavoriteProductIds(context.favoriteProductIds);
+      setRecentlyViewedProductIds(context.recentlyViewedProductIds);
+      setCart(context.cartItems.flatMap((item) => cartItemFromServerCookie(item)));
+      serverContextLoaded.current = true;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!serverContextLoaded.current) return;
+
+    saveServerCookieContext({
+      cartItems: cart.map((item) => ({ id: item.id, variantId: item.selectedVariantId, quantity: item.quantity })),
+      favoriteProductIds,
+      recentlyViewedProductIds,
+      lastUpdatedAt: null,
+    }).then((context) => {
+      if (!context) return;
+      setServerSessionId(context.sessionId);
+      setServerContextUpdatedAt(context.lastUpdatedAt);
+    });
+  }, [cart, favoriteProductIds, recentlyViewedProductIds]);
 
   const filteredProducts = useMemo(() => {
     const visibleProducts = products.filter((product) => {
@@ -64,6 +115,8 @@ function App() {
   const cartTotal = cartValue(cart);
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const offers = products.filter((product) => product.promotionalPrice);
+  const recentlyViewedProducts = recentlyViewedProductIds.flatMap((productId) => products.find((product) => product.id === productId) ?? []);
+  const formattedServerContextUpdatedAt = serverContextUpdatedAt ? new Date(serverContextUpdatedAt).toLocaleString('pt-BR') : 'ainda não sincronizado';
 
   function selectedProduct(product: Product) {
     return withVariant(product, getVariant(product, selectedVariants[product.id]));
@@ -101,6 +154,10 @@ function App() {
     });
   }
 
+  function rememberViewedProduct(productId: string) {
+    setRecentlyViewedProductIds((current) => [productId, ...current.filter((id) => id !== productId)].slice(0, 4));
+  }
+
   function chooseVariant(product: Product, variant: ColorVariant) {
     const currentVariant = getVariant(product, selectedVariants[product.id]);
     if (currentVariant.id === variant.id) return;
@@ -113,6 +170,7 @@ function App() {
     const productWithVariant = selectedProduct(product);
     pushSelectItem(productWithVariant);
     pushViewItem(productWithVariant);
+    rememberViewedProduct(product.id);
     setSelected(product);
   }
 
@@ -256,6 +314,19 @@ function App() {
       </section>
 
       <section className="offers" id="offers"><p className="eyebrow">Ofertas</p><h2>{offers.length} periféricos com preço promocional</h2><p>Produtos fictícios para validar eventos de seleção, detalhe e adição ao carrinho.</p></section>
+
+      <section className="server-context">
+        <p className="eyebrow">Cookies de servidor</p>
+        <h2>Contexto lembrado pela API</h2>
+        <p>O frontend envia carrinho, favoritos e produtos vistos para <code>/api/server-cookies/context</code>. O servidor grava cookies <code>HttpOnly</code> e devolve o estado por API.</p>
+        <div className="server-context-grid">
+          <span><strong>Sessão</strong>{serverSessionId ?? 'aguardando API'}</span>
+          <span><strong>Carrinho</strong>{cartCount} item(ns)</span>
+          <span><strong>Favoritos</strong>{favoriteProductIds.length} produto(s)</span>
+          <span><strong>Último sync</strong>{formattedServerContextUpdatedAt}</span>
+          <span><strong>Vistos recentemente</strong>{recentlyViewedProducts.length ? recentlyViewedProducts.map((product) => product.name).join(', ') : 'nenhum ainda'}</span>
+        </div>
+      </section>
     </main>
 
     <aside className={`drawer ${cartOpen ? 'open' : ''}`} aria-hidden={!cartOpen}>

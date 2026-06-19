@@ -218,7 +218,8 @@ main { overflow: hidden; }
 
 .success,
 .filters,
-.offers {
+.offers,
+.server-context {
   max-width: 1180px;
   margin: 64px auto 32px;
   border-radius: 12px;
@@ -244,9 +245,53 @@ main { overflow: hidden; }
 
 .offers p { color: #d4d4d8; }
 
+.server-context {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 8px 8px rgba(0,0,0,.1), 0 4px 4px rgba(0,0,0,.1), 0 2px 2px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.1);
+}
+
+.server-context p {
+  color: #52525b;
+  line-height: 1.5;
+}
+
+.server-context code {
+  color: #000000;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.server-context-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.server-context-grid span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  overflow-wrap: anywhere;
+  border-radius: 12px;
+  background: #fbfbf5;
+  border: 1px solid #e4e4e7;
+  padding: 16px;
+}
+
+.server-context-grid strong {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .72px;
+  text-transform: uppercase;
+}
+
 .success h2,
 .filters h2,
-.offers h2 {
+.offers h2,
+.server-context h2 {
   margin: 8px 0 16px;
   font-family: "NeueHaasGrotesk Display", Helvetica, Arial, sans-serif;
   font-size: clamp(42px, 5vw, 55px);
@@ -650,12 +695,13 @@ main { overflow: hidden; }
 
 @media (max-width: 1180px) {
   .grid { padding: 0 24px; }
-  .filters, .offers, .success { margin-left: 24px; margin-right: 24px; }
+  .filters, .offers, .success, .server-context { margin-left: 24px; margin-right: 24px; }
 }
 
 @media (max-width: 1023px) {
   .hero { grid-template-columns: 1fr; padding: 96px 24px; }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .server-context-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 767px) {
@@ -665,7 +711,8 @@ main { overflow: hidden; }
   .hero h1 { font-size: clamp(48px, 14vw, 64px); }
   .hero-card { min-height: 280px; }
   .grid { grid-template-columns: 1fr; }
-  .success h2, .filters h2, .offers h2, .modal h2, .drawer-head h2 { font-size: 36px; }
+  .success h2, .filters h2, .offers h2, .server-context h2, .modal h2, .drawer-head h2 { font-size: 36px; }
+  .server-context-grid { grid-template-columns: 1fr; }
   .cart-item { grid-template-columns: 64px 1fr; }
   .cart-item > button, .qty { grid-column: 1 / -1; }
   .drawer-actions { flex-direction: column; }
