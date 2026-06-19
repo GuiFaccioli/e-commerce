@@ -1,12 +1,15 @@
 # Estudo de cookies de servidor
 
-Este projeto e uma SPA React/Vite. Ele nao usa Next.js nem possui um backend Express de producao.
+Este projeto e uma SPA React/Vite. Ele nao usa Next.js nem possui um backend Express.
 
-Para fins educacionais, durante `npm run dev`, o `vite.config.ts` registra uma rota local:
+Para fins educacionais, o projeto expoe uma Vercel Function em:
 
 ```txt
 /api/server-cookies/context
 ```
+
+No deploy da Vercel, essa rota e atendida por `api/server-cookies/context.ts`.
+Durante `npm run dev`, o `vite.config.ts` tambem registra uma rota equivalente para estudo local.
 
 ## Cookies criados
 
@@ -28,4 +31,4 @@ O frontend nao acessa os cookies diretamente. Isso simula o fluxo correto para c
 
 ## Limite proposital
 
-Esta camada e didatica. Ela nao substitui um backend real, banco de dados, autenticacao ou storage de producao.
+Esta camada e didatica. Ela persiste contexto pequeno no navegador via cookie `HttpOnly`, mas nao substitui banco de dados, autenticacao ou storage de producao.
