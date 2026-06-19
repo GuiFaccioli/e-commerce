@@ -235,7 +235,7 @@ function App() {
     }, 500);
   }
 
-  function ColorOptions({ product }: { product: Product }) {
+  function ColorOptions({ product, showLabels = true }: { product: Product; showLabels?: boolean }) {
     const activeVariant = getVariant(product, selectedVariants[product.id]);
 
     return <div className="color-options" aria-label={`Cores de ${product.name}`}>
@@ -251,7 +251,7 @@ function App() {
         aria-label={`Selecionar cor ${variant.label}`}
       >
         <span className="color-swatch" style={{ backgroundColor: variant.swatch }} />
-        <span>{variant.label}</span>
+        {showLabels && <span>{variant.label}</span>}
       </button>)}
     </div>;
   }
@@ -305,7 +305,7 @@ function App() {
             <p className="category">{product.category} · ★ {product.rating}</p>
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <ColorOptions product={product} />
+            <ColorOptions product={product} showLabels={false} />
             <div className="price">{product.promotionalPrice && <del>{brl.format(product.price)}</del>}<strong>{brl.format(productPrice(product))}</strong></div>
             <small>Estoque fake: {product.stock}</small>
             <div className="card-actions"><button className="btn outline-light" onClick={(event) => { event.stopPropagation(); viewDetails(product); }}>Ver detalhes</button><button className="btn primary" onClick={(event) => { event.stopPropagation(); addToCart(product); }}>Carrinho</button></div>
