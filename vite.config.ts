@@ -120,4 +120,10 @@ function serverCookieStudyPlugin() {
   };
 }
 
-export default defineConfig({ plugins: [serverCookieStudyPlugin(), react()] });
+export default defineConfig({
+  plugins: [serverCookieStudyPlugin(), react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+  },
+});
